@@ -6,6 +6,7 @@ import { validateBirthDate, getMinBirthDate, getMaxBirthDate } from "../services
 
 function CreerUtilisateur({ isOpen, onClose, onSuccess }) {
   const [dateError, setDateError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   
   const { 
     formData, 
@@ -24,20 +25,63 @@ function CreerUtilisateur({ isOpen, onClose, onSuccess }) {
   const handleClose = () => {
     resetForm();
     setDateError("");
+    setFieldErrors({});
     onClose();
+  };
+
+  // Gestion du changement avec suppression de l'erreur du champ
+  const handleFieldChange = (e) => {
+    const { name } = e.target;
+    handleChange(e);
+    
+    // Supprimer l'erreur du champ lorsqu'il est modifié
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   // Gestion du changement de date avec validation
   const handleDateChange = (e) => {
-    const { value } = e.target;
+    const { value, name } = e.target;
     handleChange(e);
     
+    // Supprimer l'erreur du champ
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+    
     // Valider la date
-    const validation = validateBirthDate(value);
-    if (!validation.isValid) {
-      setDateError(validation.message);
+    if (value) {
+      const validation = validateBirthDate(value);
+      if (!validation.isValid) {
+        setDateError(validation.message);
+      } else {
+        setDateError("");
+      }
     } else {
       setDateError("");
+    }
+  };
+
+  // Gestion du changement de fichier
+  const handlePhotoChange = (e) => {
+    handleFileChange(e);
+    
+    // Supprimer l'erreur du champ photo
+    if (fieldErrors.photo) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.photo;
+        return newErrors;
+      });
     }
   };
 
@@ -45,10 +89,51 @@ function CreerUtilisateur({ isOpen, onClose, onSuccess }) {
   const handleFormSubmit = (e) => {
     e.preventDefault();
     
-    // Vérifier la date avant de soumettre
-    const validation = validateBirthDate(formData.naissance);
-    if (!validation.isValid) {
-      setDateError(validation.message);
+    const errors = {};
+    
+    // Validation de tous les champs
+    if (!formData.prenom || formData.prenom.trim() === "") {
+      errors.prenom = "Le prénom est obligatoire";
+    }
+    
+    if (!formData.nom || formData.nom.trim() === "") {
+      errors.nom = "Le nom est obligatoire";
+    }
+    
+    if (!formData.email || formData.email.trim() === "") {
+      errors.email = "L'email est obligatoire";
+    }
+    
+    if (!formData.telephone || formData.telephone.trim() === "") {
+      errors.telephone = "Le téléphone est obligatoire";
+    }
+    
+    if (!formData.cni || formData.cni.trim() === "") {
+      errors.cni = "Le numéro CNI est obligatoire";
+    }
+    
+    if (!formData.naissance || formData.naissance.trim() === "") {
+      errors.naissance = "La date de naissance est obligatoire";
+    } else {
+      // Vérifier la date si elle est remplie
+      const validation = validateBirthDate(formData.naissance);
+      if (!validation.isValid) {
+        setDateError(validation.message);
+        errors.naissance = validation.message;
+      }
+    }
+    
+    if (!formData.role || formData.role.trim() === "") {
+      errors.role = "Le type d'utilisateur est obligatoire";
+    }
+    
+    if (!formData.photo) {
+      errors.photo = "La photo est obligatoire";
+    }
+    
+    // Si des erreurs existent, les afficher
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
     
@@ -102,12 +187,14 @@ function CreerUtilisateur({ isOpen, onClose, onSuccess }) {
                     name="prenom" 
                     type="text" 
                     value={formData.prenom}
-                    onChange={handleChange}
+                    onChange={handleFieldChange}
                     disabled={loading}
-                    required 
-                    className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100" 
+                    className={`block w-full rounded-lg border ${fieldErrors.prenom ? 'border-red-500' : 'border-gray-300'} px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100`}
                     placeholder="Entrez le prénom"
                   />
+                  {fieldErrors.prenom && (
+                    <p className="text-xs text-red-600 mt-1 font-medium">{fieldErrors.prenom}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="nom" className="block text-sm font-semibold font-lexendDeca text-gray-700 mb-2">
@@ -118,12 +205,14 @@ function CreerUtilisateur({ isOpen, onClose, onSuccess }) {
                     name="nom" 
                     type="text" 
                     value={formData.nom}
-                    onChange={handleChange}
+                    onChange={handleFieldChange}
                     disabled={loading}
-                    required 
-                    className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100" 
+                    className={`block w-full rounded-lg border ${fieldErrors.nom ? 'border-red-500' : 'border-gray-300'} px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100`}
                     placeholder="Entrez le nom"
                   />
+                  {fieldErrors.nom && (
+                    <p className="text-xs text-red-600 mt-1 font-medium">{fieldErrors.nom}</p>
+                  )}
                 </div>
               </div>
 
@@ -138,12 +227,14 @@ function CreerUtilisateur({ isOpen, onClose, onSuccess }) {
                     name="email" 
                     type="email" 
                     value={formData.email}
-                    onChange={handleChange}
+                    onChange={handleFieldChange}
                     disabled={loading}
-                    required 
-                    className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100" 
+                    className={`block w-full rounded-lg border ${fieldErrors.email ? 'border-red-500' : 'border-gray-300'} px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100`}
                     placeholder="exemple@email.com"
                   />
+                  {fieldErrors.email && (
+                    <p className="text-xs text-red-600 mt-1 font-medium">{fieldErrors.email}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="telephone" className="block text-sm font-semibold font-lexendDeca text-gray-700 mb-2">
@@ -154,12 +245,14 @@ function CreerUtilisateur({ isOpen, onClose, onSuccess }) {
                     name="telephone" 
                     type="number" 
                     value={formData.telephone}
-                    onChange={handleChange}
+                    onChange={handleFieldChange}
                     disabled={loading}
-                    required 
-                    className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100" 
+                    className={`block w-full rounded-lg border ${fieldErrors.telephone ? 'border-red-500' : 'border-gray-300'} px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100`}
                     placeholder="+221 XX XXX XX XX"
                   />
+                  {fieldErrors.telephone && (
+                    <p className="text-xs text-red-600 mt-1 font-medium">{fieldErrors.telephone}</p>
+                  )}
                 </div>
               </div>
 
@@ -172,14 +265,16 @@ function CreerUtilisateur({ isOpen, onClose, onSuccess }) {
                   <input 
                     id="cni" 
                     name="cni" 
-                    type="text" 
+                    type="number" 
                     value={formData.cni}
-                    onChange={handleChange}
+                    onChange={handleFieldChange}
                     disabled={loading}
-                    required 
-                    className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100" 
+                    className={`block w-full rounded-lg border ${fieldErrors.cni ? 'border-red-500' : 'border-gray-300'} px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100`}
                     placeholder="Numéro CNI"
                   />
+                  {fieldErrors.cni && (
+                    <p className="text-xs text-red-600 mt-1 font-medium">{fieldErrors.cni}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="naissance" className="block text-sm font-semibold font-lexendDeca text-gray-700 mb-2">
@@ -192,13 +287,12 @@ function CreerUtilisateur({ isOpen, onClose, onSuccess }) {
                     value={formData.naissance}
                     onChange={handleDateChange}
                     disabled={loading}
-                    required 
                     max={getMinBirthDate()}
                     min={getMaxBirthDate()}
-                    className={`block w-full rounded-lg border ${dateError ? 'border-red-500' : 'border-gray-300'} px-4 py-3 text-gray-900 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100`}
+                    className={`block w-full rounded-lg border ${dateError || fieldErrors.naissance ? 'border-red-500' : 'border-gray-300'} px-4 py-3 text-gray-900 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100`}
                   />
-                  {dateError && (
-                    <p className="text-xs text-red-600 mt-1 font-medium">{dateError}</p>
+                  {(dateError || fieldErrors.naissance) && (
+                    <p className="text-xs text-red-600 mt-1 font-medium">{dateError || fieldErrors.naissance}</p>
                   )}
                   <p className="text-xs text-gray-500 mt-1">L'utilisateur doit avoir au moins 5 ans</p>
                 </div>
@@ -214,15 +308,17 @@ function CreerUtilisateur({ isOpen, onClose, onSuccess }) {
                     id="role" 
                     name="role" 
                     value={formData.role}
-                    onChange={handleChange}
+                    onChange={handleFieldChange}
                     disabled={loading}
-                    required 
-                    className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all bg-white disabled:bg-gray-100"
+                    className={`block w-full rounded-lg border ${fieldErrors.role ? 'border-red-500' : 'border-gray-300'} px-4 py-3 text-gray-900 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all bg-white disabled:bg-gray-100`}
                   >
                     <option value="">Sélectionner un type</option>
                     <option value="client">Client</option>
                     <option value="distributeur">Distributeur</option>
                   </select>
+                  {fieldErrors.role && (
+                    <p className="text-xs text-red-600 mt-1 font-medium">{fieldErrors.role}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="photo" className="block text-sm font-semibold font-lexendDeca text-gray-700 mb-2">
@@ -233,11 +329,13 @@ function CreerUtilisateur({ isOpen, onClose, onSuccess }) {
                     name="photo" 
                     type="file" 
                     accept="image/jpeg,image/jpg,image/png"
-                    onChange={handleFileChange}
+                    onChange={handlePhotoChange}
                     disabled={loading}
-                    required 
-                    className="block w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100" 
+                    className={`block w-full rounded-lg border ${fieldErrors.photo ? 'border-red-500' : 'border-gray-300'} px-4 py-2 text-gray-900 focus:border-[#224957] focus:ring-2 focus:ring-[#224957] focus:ring-opacity-20 transition-all disabled:bg-gray-100`}
                   />
+                  {fieldErrors.photo && (
+                    <p className="text-xs text-red-600 mt-1 font-medium">{fieldErrors.photo}</p>
+                  )}
                   <p className="text-xs text-gray-500 mt-1">JPG, JPEG ou PNG (Max 5MB)</p>
                 </div>
               </div>

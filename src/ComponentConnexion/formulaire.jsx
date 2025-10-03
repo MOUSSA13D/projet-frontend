@@ -1,8 +1,24 @@
 // src/ComponentConnexion/Formulaire.jsx
+import { useEffect } from 'react';
 import useLogin from '../hooks/useLogin';
 
 function Formulaire() {
     const { formData, loading, error, handleChange, handleSubmit } = useLogin();
+
+    useEffect(() => {
+        console.log('🟢 État error changé:', error);
+    }, [error]);
+
+    useEffect(() => {
+        console.log('🟢 État loading changé:', loading);
+    }, [loading]);
+
+    const onFormSubmit = (e) => {
+        
+        console.log('🟡 onFormSubmit appelé dans Formulaire');
+        handleSubmit(e);
+
+    };
 
     return (
         <div className="flex flex-col justify-center items-center h-full">
@@ -10,7 +26,11 @@ function Formulaire() {
                 Connectez-vous
             </h3>
             
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-80 md:w-96">
+            <form 
+                onSubmit={onFormSubmit} 
+                className="flex flex-col gap-4 w-80 md:w-96"
+                noValidate
+            >
                 {error && (
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
                         <span className="block sm:inline">{error}</span>
@@ -21,7 +41,7 @@ function Formulaire() {
                     type="text" 
                     name="identifiant"
                     placeholder="Email ou identifiant" 
-                    required 
+                    autoComplete="username"
                     value={formData.identifiant}
                     onChange={handleChange}
                     disabled={loading}
@@ -36,7 +56,7 @@ function Formulaire() {
                     type="password" 
                     name="mot_de_passe"
                     placeholder="Mot de passe" 
-                    required 
+                    autoComplete="current-password"
                     value={formData.mot_de_passe}
                     onChange={handleChange}
                     disabled={loading}

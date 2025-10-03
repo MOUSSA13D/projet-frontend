@@ -15,17 +15,38 @@ const authService = {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.data));
         localStorage.setItem('userType', response.data.type);
+        
+        return response.data; // ✅ Retourner les données en cas de succès
+      } else {
+        // ✅ Si success est false, on lance une erreur
+        throw new Error(response.data.message || 'Identifiant ou mot de passe incorrect');
+      }
+    } catch (error) {
+      // ✅ Propager l'erreur correctement
+      console.error('Erreur authService.login:', error);
+      
+      // Si c'est une erreur réseau ou serveur
+      if (error.response?.data) {
+        throw {
+          message: error.response.data.message || 'Identifiant ou mot de passe incorrect',
+          ...error.response.data
+        };
       }
       
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'Erreur de connexion' };
+      // Si c'est une erreur lancée manuellement
+      if (error.message) {
+        throw error;
+      }
+      
+      // Erreur par défaut
+      throw new Error('Erreur de connexion au serveur');
     }
   },
 
-   setCurrentUser: (user) => {
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+  setCurrentUser: (user) => {
+    localStorage.setItem('user', JSON.stringify(user));
   },
+
   // Déconnexion
   logout: () => {
     localStorage.removeItem('token');
@@ -50,13 +71,13 @@ const authService = {
     return localStorage.getItem('userType');
   },
 
-  // Nouvelle méthode pour mettre à jour les données utilisateur
+  // Mettre à jour les données utilisateur
   updateUserData: (newData) => {
     const currentUser = authService.getCurrentUser();
-      if (currentUser) {
-    const updatedUser = { ...currentUser, ...newData };
-    
-  }
+    if (currentUser) {
+      const updatedUser = { ...currentUser, ...newData };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
   }
 };
 
