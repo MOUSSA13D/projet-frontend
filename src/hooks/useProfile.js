@@ -8,7 +8,7 @@ const useProfile = () => {
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const API_URL = import.meta.env.VITE_API_URL || 'https://minibankbackend.onrender.com';
 
   const fetchProfile = async () => {
     try {

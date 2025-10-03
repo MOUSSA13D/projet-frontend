@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Créer une instance d'axios
 const intercepteur = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://minibankbackend.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
