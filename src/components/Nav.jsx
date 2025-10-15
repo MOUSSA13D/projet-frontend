@@ -11,7 +11,7 @@ function Nav() {
   const [userType, setUserType] = useState(null);
   const dropdownRef = useRef(null);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'https://minibankbackend.onrender.com';
+  const API_URL = import.meta.env.VITE_API_URL || 'https://projet-backend-1-8z5p.onrender.com';
 
   useEffect(() => {
     loadUserData();
